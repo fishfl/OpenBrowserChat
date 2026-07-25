@@ -2,9 +2,6 @@
   "manifest_version": 3,
   "name": "网页AI对话助手",
   "version": "1.0",
-  "versionName": "1.0",
-  "versionCode": 1,
-  "appid": "ai_dialog_assistant",
   "description": "可以选择网页上的文本内容作为上下文，和大模型进行对话。",
   "permissions": [
     "activeTab",
