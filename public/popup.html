@@ -66,11 +66,20 @@
     <input type="text" id="model" placeholder="如: deepseek-chat 或 qwen-max">
   </div>
   <div class="form-group">
-    <label for="systemPrompt">System Prompt (包含 Skills)</label>
+    <label for="systemPrompt">System Prompt (包含全局属性)</label>
     <textarea id="systemPrompt" placeholder="你是一个得力的助手..."></textarea>
   </div>
   <button id="saveBtn">保存配置</button>
   <div id="status"></div>
+
+  <hr style="margin: 15px 0;">
+  <h3>技能 (Skills) 管理</h3>
+  <div class="form-group">
+    <label for="skillUpload" style="font-size: 12px; color: #555;">上传 .md 技能文件 (文件名即为调用命令, 如 baoyu.md -> /baoyu)</label>
+    <input type="file" id="skillUpload" accept=".md" multiple style="font-size: 12px;">
+  </div>
+  <ul id="skillList" style="list-style: none; padding: 0; margin: 0; font-size: 13px;"></ul>
+
   <script src="popup.js"></script>
 </body>
 </html>

@@ -5,10 +5,23 @@ interface AppConfig {
     systemPrompt: string;
 }
 
+interface Skill {
+    id: string;
+    content: string;
+}
+
+interface ChatMessage {
+    role: "user" | "ai";
+    text: string;
+}
+
+let chatHistory: ChatMessage[] = [];
 let contexts: string[] = [];
+let availableSkills: Skill[] = [];
 let chatBoxUI: HTMLDivElement | null = null;
 let contextListUI: HTMLDivElement | null = null;
 let chatMessagesUI: HTMLDivElement | null = null;
+let skillSuggestionUI: HTMLDivElement | null = null;
 let config: AppConfig = {
     providerUrl: "",
     apiKey: "",
@@ -40,6 +53,14 @@ chrome.storage.sync.get(["config", "contexts"], (data: { [key: string]: any }) =
     if (data.contexts) contexts = data.contexts as string[];
 });
 
+chrome.storage.local.get(["skills", "chatHistory"], (data) => {
+    if (data.skills) availableSkills = data.skills as Skill[];
+    if (data.chatHistory) {
+        chatHistory = data.chatHistory as ChatMessage[];
+        renderChatHistory();
+    }
+});
+
 // Sync state across different tabs
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync') {
@@ -50,6 +71,15 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         if (changes.config) {
             config = changes.config.newValue as AppConfig;
         }
+    }
+    
+    if (namespace === 'local' && changes.skills) {
+        availableSkills = (changes.skills.newValue || []) as Skill[];
+    }
+
+    if (namespace === 'local' && changes.chatHistory) {
+        chatHistory = (changes.chatHistory.newValue || []) as ChatMessage[];
+        renderChatHistory();
     }
     
     if (namespace === 'local' && changes.chatOwnerToken) {
@@ -97,7 +127,7 @@ function createChatUI() {
     
     const header = document.createElement("div");
     header.className = "chat-header";
-    header.innerHTML = `<span>AI 助手</span> <button id="close-chat-btn">x</button>`;
+    header.innerHTML = `<span>AI 助手</span> <div><button id="clear-history-btn" title="清空历史" style="margin-right:8px; font-size:12px;">🗑️</button> <button id="close-chat-btn">x</button></div>`;
     
     const contentArea = document.createElement("div");
     contentArea.className = "chat-content-area";
@@ -114,14 +144,67 @@ function createChatUI() {
     const inputArea = document.createElement("div");
     inputArea.className = "chat-input-area";
     
+    skillSuggestionUI = document.createElement("div");
+    skillSuggestionUI.className = "skill-suggestion-popup";
+    
     const inputField = document.createElement("textarea");
     inputField.id = "chat-input-field";
     inputField.placeholder = "输入你的问题...";
     
+    // Add event listeners for skill suggestions
+    let selectedSuggestionIndex = -1;
+    let filteredSkills: Skill[] = [];
+
+    inputField.addEventListener("input", (e) => {
+        const val = inputField.value;
+        if (val.startsWith("/")) {
+            const query = val.slice(1).trim().toLowerCase();
+            filteredSkills = availableSkills.filter(s => s.id.toLowerCase().includes(query));
+            
+            if (filteredSkills.length > 0) {
+                renderSkillSuggestions(filteredSkills, inputField);
+                selectedSuggestionIndex = -1;
+            } else {
+                if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
+            }
+        } else {
+            if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
+        }
+    });
+
+    inputField.addEventListener("keydown", (e) => {
+        if (!skillSuggestionUI || skillSuggestionUI.style.display === "none") return;
+        
+        const items = skillSuggestionUI.querySelectorAll('.skill-suggestion-item');
+        if (items.length === 0) return;
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+            updateSuggestionHighlight(items);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
+            updateSuggestionHighlight(items);
+        } else if (e.key === "Enter" || e.key === "Tab") {
+            if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < items.length) {
+                e.preventDefault();
+                const chosenId = filteredSkills[selectedSuggestionIndex].id;
+                applySkillSuggestion(chosenId, inputField);
+            }
+        } else if (e.key === "Escape") {
+            skillSuggestionUI.style.display = "none";
+        }
+    });
+    
     const sendBtn = document.createElement("button");
     sendBtn.innerText = "发送";
-    sendBtn.onclick = () => sendMessage(inputField.value);
+    sendBtn.onclick = () => {
+        if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
+        sendMessage(inputField.value);
+    };
 
+    inputArea.appendChild(skillSuggestionUI);
     inputArea.appendChild(inputField);
     inputArea.appendChild(sendBtn);
 
@@ -131,9 +214,65 @@ function createChatUI() {
     
     document.body.appendChild(chatBoxUI);
 
+    // Initial render of chat history if any exists
+    renderChatHistory();
+
+    document.getElementById("clear-history-btn")!.onclick = () => {
+        chatHistory = [];
+        chrome.storage.local.set({ chatHistory: [] });
+        if (chatMessagesUI) chatMessagesUI.innerHTML = "";
+    };
+
     document.getElementById("close-chat-btn")!.onclick = () => {
         chatBoxUI!.style.display = "none";
     };
+}
+
+// Global variables for suggestion handling
+let selectedSuggestionIndex = -1;
+
+function renderSkillSuggestions(skillsToShow: Skill[], inputField: HTMLTextAreaElement) {
+    if (!skillSuggestionUI) return;
+    skillSuggestionUI.innerHTML = "";
+    
+    skillsToShow.forEach((skill, idx) => {
+        const item = document.createElement("div");
+        item.className = "skill-suggestion-item";
+        item.innerHTML = `<span class="skill-suggestion-name">/${skill.id}</span>`;
+        
+        item.addEventListener("mousedown", (e) => {
+            // Use mousedown instead of click to prevent input blur before trigger
+            e.preventDefault(); 
+            applySkillSuggestion(skill.id, inputField);
+        });
+        
+        item.addEventListener("mouseenter", () => {
+            const allItems = skillSuggestionUI!.querySelectorAll('.skill-suggestion-item');
+            allItems.forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+        });
+        
+        skillSuggestionUI!.appendChild(item);
+    });
+    
+    skillSuggestionUI.style.display = "block";
+}
+
+function updateSuggestionHighlight(items: NodeListOf<Element>) {
+    items.forEach((item, index) => {
+        if (index === selectedSuggestionIndex) {
+            item.classList.add('active');
+            (item as HTMLElement).scrollIntoView({ block: 'nearest' });
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+function applySkillSuggestion(skillId: string, inputField: HTMLTextAreaElement) {
+    inputField.value = `/${skillId} `;
+    inputField.focus();
+    if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
 }
 
 function updateContextUI() {
@@ -161,13 +300,31 @@ function updateContextUI() {
     contextListUI.appendChild(list);
 }
 
-function appendMessage(role: "user" | "ai", text: string) {
+function renderChatHistory() {
+    if (!chatMessagesUI) return;
+    chatMessagesUI.innerHTML = "";
+    
+    chatHistory.forEach(msg => {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `chat-message ${msg.role}-message`;
+        msgDiv.innerText = msg.text;
+        chatMessagesUI!.appendChild(msgDiv);
+    });
+    chatMessagesUI.scrollTop = chatMessagesUI.scrollHeight;
+}
+
+function appendMessage(role: "user" | "ai", text: string, saveToHistory: boolean = true) {
     if (!chatMessagesUI) return;
     const msgDiv = document.createElement("div");
     msgDiv.className = `chat-message ${role}-message`;
     msgDiv.innerText = text;
     chatMessagesUI.appendChild(msgDiv);
     chatMessagesUI.scrollTop = chatMessagesUI.scrollHeight;
+
+    if (saveToHistory) {
+        chatHistory.push({ role, text });
+        chrome.storage.local.set({ chatHistory: chatHistory });
+    }
 }
 
 async function sendMessage(prompt: string) {
@@ -188,21 +345,44 @@ async function sendMessage(prompt: string) {
         }
 
         const messages = [];
-        if (config.systemPrompt) {
-            messages.push({ role: "system", content: config.systemPrompt });
+        
+        let finalSystemPrompt = config.systemPrompt;
+        let realPrompt = prompt;
+
+        // Check if the user is invoking a skill via /skill-name
+        const skillMatch = prompt.match(/^\/([\w-]+)\s*(.*)/);
+        if (skillMatch) {
+            const requestedSkillId = skillMatch[1];
+            const theRestOfPrompt = skillMatch[2];
+            
+            const matchedSkill = availableSkills.find(s => s.id === requestedSkillId);
+            if (matchedSkill) {
+                // Prepend or replace the system prompt with the Skill instructions
+                finalSystemPrompt = finalSystemPrompt 
+                    + "\n\n=== 附加工作流技能指令 ===\n" 
+                    + matchedSkill.content;
+                realPrompt = theRestOfPrompt; // Strip the /skill prefix for the user prompt
+                 
+                // Show a mini notification in chat
+                appendMessage("ai", `[已触发技能: /${requestedSkillId}]`);
+            }
+        }
+
+        if (finalSystemPrompt) {
+            messages.push({ role: "system", content: finalSystemPrompt });
         }
         
-        let fullPrompt = prompt;
+        let fullPrompt = realPrompt;
         if (contexts.length > 0) {
             const contextStr = contexts.join("\n\n---\n\n");
-            fullPrompt = `以下是提供的上下文内容：\n\n${contextStr}\n\n基于以上上下文，请回答：\n${prompt}`;
+            fullPrompt = `以下是收集到的上下文参考资料：\n\n${contextStr}\n\n=== 用户请求 ===\n${realPrompt}`;
         }
 
         messages.push({ role: "user", content: fullPrompt });
 
         try {
             // Using OpenAI style API request which DeepSeek, Qwen usually support
-            appendMessage("ai", "思考中...");
+            appendMessage("ai", "思考中...", false);
             let loadingMsg = chatMessagesUI!.lastChild as HTMLDivElement;
 
             const requestBody = {
@@ -222,6 +402,9 @@ async function sendMessage(prompt: string) {
 
             if (!response.ok) {
                 loadingMsg.innerText = `API 请求失败: ${response.status} ${response.statusText}`;
+                // Save the error message to history too
+                chatHistory.push({ role: "ai", text: loadingMsg.innerText });
+                chrome.storage.local.set({ chatHistory: chatHistory });
                 return;
             }
 
@@ -253,10 +436,18 @@ async function sendMessage(prompt: string) {
                     chatMessagesUI!.scrollTop = chatMessagesUI!.scrollHeight;
                 }
             }
+
+            // Stream finished perfectly, save the final complete message to history
+            chatHistory.push({ role: "ai", text: loadingMsg.innerText });
+            chrome.storage.local.set({ chatHistory: chatHistory });
             
         } catch (e: any) {
              let loadingMsg = chatMessagesUI?.lastChild as HTMLDivElement;
-             if(loadingMsg) loadingMsg.innerText = `请求发生错误: ${e.message || String(e)}`;
+             if(loadingMsg) {
+                 loadingMsg.innerText = `请求发生错误: ${e.message || String(e)}`;
+                 chatHistory.push({ role: "ai", text: loadingMsg.innerText });
+                 chrome.storage.local.set({ chatHistory: chatHistory });
+             }
         }
     });
 }
