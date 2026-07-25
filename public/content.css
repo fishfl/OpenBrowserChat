@@ -55,14 +55,6 @@
     color: #666;
     margin-bottom: 5px;
 }
-.context-header .clear-btn {
-    background: none;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 11px;
-    cursor: pointer;
-    padding: 2px 5px;
-}
 
 .context-list-area ul {
     list-style: none;
@@ -148,7 +140,7 @@
     border-bottom: none;
 }
 
-.skill-suggestion-item:hover, .skill-suggestion-item.active {
+.skill-suggestion-item.active {
     background-color: #f5f5f5;
 }
 

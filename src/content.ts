@@ -1,3 +1,5 @@
+import { marked } from "marked";
+
 interface AppConfig {
     providerUrl: string;
     apiKey: string;
@@ -152,8 +154,13 @@ function createChatUI() {
     inputField.placeholder = "输入你的问题...";
     
     // Add event listeners for skill suggestions
-    let selectedSuggestionIndex = -1;
+    // NOTE: We now use the global selectedSuggestionIndex and don't shadow it inside initializeChatUI
     let filteredSkills: Skill[] = [];
+
+    // Define a flag to track if we're actively composing.
+    let isComposing = false;
+    inputField.addEventListener("compositionstart", () => { isComposing = true; });
+    inputField.addEventListener("compositionend", () => { isComposing = false; });
 
     inputField.addEventListener("input", (e) => {
         const val = inputField.value;
@@ -162,8 +169,8 @@ function createChatUI() {
             filteredSkills = availableSkills.filter(s => s.id.toLowerCase().includes(query));
             
             if (filteredSkills.length > 0) {
+                selectedSuggestionIndex = 0; // 默认选中第一项
                 renderSkillSuggestions(filteredSkills, inputField);
-                selectedSuggestionIndex = -1;
             } else {
                 if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
             }
@@ -173,9 +180,32 @@ function createChatUI() {
     });
 
     inputField.addEventListener("keydown", (e) => {
-        if (!skillSuggestionUI || skillSuggestionUI.style.display === "none") return;
+        const isMenuVisible = skillSuggestionUI && skillSuggestionUI.style.display !== "none";
+        const items = (skillSuggestionUI && isMenuVisible) ? skillSuggestionUI.querySelectorAll('.skill-suggestion-item') : null;
         
-        const items = skillSuggestionUI.querySelectorAll('.skill-suggestion-item');
+        // Handle enter key
+        if (e.key === 'Enter' && !e.shiftKey) {
+            // If menu is open and an item is selected, let the skill selection handle it
+            if (isMenuVisible && items && items.length > 0 && selectedSuggestionIndex >= 0 && !isComposing) {
+                e.preventDefault();
+                const chosenId = filteredSkills[selectedSuggestionIndex].id;
+                applySkillSuggestion(chosenId, inputField);
+                return;
+            }
+            
+            // Otherwise, send the message
+            if (!isComposing) {
+                e.preventDefault();
+                if (inputField.value.trim()) {
+                    if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
+                    sendMessage(inputField.value);
+                }
+            }
+            return;
+        }
+
+        if (!isMenuVisible || !items) return;
+        
         if (items.length === 0) return;
 
         if (e.key === "ArrowDown") {
@@ -186,14 +216,14 @@ function createChatUI() {
             e.preventDefault();
             selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
             updateSuggestionHighlight(items);
-        } else if (e.key === "Enter" || e.key === "Tab") {
+        } else if (e.key === "Tab") {
             if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < items.length) {
                 e.preventDefault();
                 const chosenId = filteredSkills[selectedSuggestionIndex].id;
                 applySkillSuggestion(chosenId, inputField);
             }
         } else if (e.key === "Escape") {
-            skillSuggestionUI.style.display = "none";
+            if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
         }
     });
     
@@ -218,9 +248,13 @@ function createChatUI() {
     renderChatHistory();
 
     document.getElementById("clear-history-btn")!.onclick = () => {
+        // Clear chat history
         chatHistory = [];
         chrome.storage.local.set({ chatHistory: [] });
         if (chatMessagesUI) chatMessagesUI.innerHTML = "";
+        
+        // Also clear contexts
+        clearAllContexts();
     };
 
     document.getElementById("close-chat-btn")!.onclick = () => {
@@ -247,13 +281,18 @@ function renderSkillSuggestions(skillsToShow: Skill[], inputField: HTMLTextAreaE
         });
         
         item.addEventListener("mouseenter", () => {
+            selectedSuggestionIndex = idx;
             const allItems = skillSuggestionUI!.querySelectorAll('.skill-suggestion-item');
-            allItems.forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
+            updateSuggestionHighlight(allItems);
         });
         
         skillSuggestionUI!.appendChild(item);
     });
+    // Highlight the very first selected item implicitly right after render if needed
+    if (selectedSuggestionIndex >= 0) {
+        const allItems = skillSuggestionUI.querySelectorAll('.skill-suggestion-item');
+        updateSuggestionHighlight(allItems);
+    }
     
     skillSuggestionUI.style.display = "block";
 }
@@ -277,10 +316,9 @@ function applySkillSuggestion(skillId: string, inputField: HTMLTextAreaElement) 
 
 function updateContextUI() {
     if (!contextListUI) return;
-    contextListUI.innerHTML = `<div class="context-header"><span>当前上下文</span> <button class="clear-btn">清空所有</button></div>`;
+    // Removed the inline clear-btn from context header
+    contextListUI.innerHTML = `<div class="context-header"><span>当前上下文</span></div>`;
     
-    contextListUI.querySelector('.clear-btn')?.addEventListener('click', clearAllContexts);
-
     const list = document.createElement("ul");
     contexts.forEach((ctx, idx) => {
         const li = document.createElement("li");
@@ -307,7 +345,11 @@ function renderChatHistory() {
     chatHistory.forEach(msg => {
         const msgDiv = document.createElement("div");
         msgDiv.className = `chat-message ${msg.role}-message`;
-        msgDiv.innerText = msg.text;
+        if (msg.role === "ai") {
+            msgDiv.innerHTML = marked.parse(msg.text) as string;
+        } else {
+            msgDiv.innerText = msg.text;
+        }
         chatMessagesUI!.appendChild(msgDiv);
     });
     chatMessagesUI.scrollTop = chatMessagesUI.scrollHeight;
@@ -317,7 +359,17 @@ function appendMessage(role: "user" | "ai", text: string, saveToHistory: boolean
     if (!chatMessagesUI) return;
     const msgDiv = document.createElement("div");
     msgDiv.className = `chat-message ${role}-message`;
-    msgDiv.innerText = text;
+    if (role === "ai" && !saveToHistory) {
+        // If it's a temporary loading message or real-time streaming, we'll keep its exact raw state or a parsed state based on how it's handled downstream.
+        // Actually, during streaming, appending text incrementally is easier if innerText is used, but for the final message we should render markdown.
+        // So for the empty "思考中..." shell we'll just use text.
+        msgDiv.innerText = text;
+    } else if (role === "ai") {
+        msgDiv.innerHTML = marked.parse(text) as string;
+    } else {
+        msgDiv.innerText = text;
+    }
+    
     chatMessagesUI.appendChild(msgDiv);
     chatMessagesUI.scrollTop = chatMessagesUI.scrollHeight;
 
@@ -415,6 +467,7 @@ async function sendMessage(prompt: string) {
             if (!reader) throw new Error("无法获取数据流");
 
             let done = false;
+            let fullAiResponse = "";
             while (!done) {
                 const { value, done: readerDone } = await reader.read();
                 done = readerDone;
@@ -427,7 +480,9 @@ async function sendMessage(prompt: string) {
                             try {
                                 const dataObj = JSON.parse(trimmedLine.slice(6));
                                 const content = dataObj.choices[0]?.delta?.content || "";
-                                loadingMsg.innerText += content;
+                                fullAiResponse += content;
+                                // For real-time streaming, update the UI with partially parsed markdown
+                                loadingMsg.innerHTML = marked.parse(fullAiResponse) as string;
                             } catch (err) {
                                 // 忽略解析错误，继续处理下一个 chunk
                             }
@@ -438,7 +493,7 @@ async function sendMessage(prompt: string) {
             }
 
             // Stream finished perfectly, save the final complete message to history
-            chatHistory.push({ role: "ai", text: loadingMsg.innerText });
+            chatHistory.push({ role: "ai", text: fullAiResponse });
             chrome.storage.local.set({ chatHistory: chatHistory });
             
         } catch (e: any) {
