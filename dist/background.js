@@ -1,0 +1,1 @@
+(()=>{"use strict";chrome.commands.onCommand.addListener(e=>{"add_to_context"===e&&chrome.tabs.query({active:!0,currentWindow:!0},e=>{e.length>0&&e[0].id&&chrome.tabs.sendMessage(e[0].id,{action:"requestSelection"}).catch(e=>console.warn("无法发送消息到内容脚本，请刷新页面后重试:",e))})})})();

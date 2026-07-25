@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI 助手配置</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    select, input[type="text"], textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 5px;
+    }
+    textarea {
+      height: 80px;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #status {
+      margin-top: 10px;
+      color: green;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h3>AI 服务配置</h3>
+  <div class="form-group">
+    <label for="providerSelect">选择服务供应商</label>
+    <select id="providerSelect">
+      <!-- Options are dynamically populated by popup.js -->
+    </select>
+  </div>
+  <div class="form-group" id="customUrlGroup" style="display: none;">
+    <label for="providerUrl">自定义 API URL</label>
+    <input type="text" id="providerUrl" placeholder="如: https://api.openai.com/v1/chat/completions">
+  </div>
+  <div class="form-group">
+    <label for="apiKey">API Key</label>
+    <input type="text" id="apiKey" placeholder="你的 API Key">
+  </div>
+  <div class="form-group">
+    <label for="model">Model Name</label>
+    <input type="text" id="model" placeholder="如: deepseek-chat 或 qwen-max">
+  </div>
+  <div class="form-group">
+    <label for="systemPrompt">System Prompt (包含 Skills)</label>
+    <textarea id="systemPrompt" placeholder="你是一个得力的助手..."></textarea>
+  </div>
+  <button id="saveBtn">保存配置</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

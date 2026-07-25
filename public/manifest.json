@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "网页版 AI 对话助手",
+  "version": "1.0",
+  "description": "可以选择网页上的文本内容作为上下文，和大模型进行对话。",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI 助手配置"
+  },
+  "commands": {
+    "add_to_context": {
+      "suggested_key": {
+        "default": "Alt+V",
+        "mac": "Alt+V"
+      },
+      "description": "将选定内容添加为 AI 对话上下文"
+
+    }
+  }
+}
