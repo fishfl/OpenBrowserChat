@@ -16,6 +16,9 @@ let config: AppConfig = {
     systemPrompt: "你是一个有用的助手。"
 };
 
+// Generate a unique token for THIS SPECIFIC tab instance
+const myTabToken = Math.random().toString(36).substring(2);
+
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "requestSelection") {
@@ -23,6 +26,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (selection && selection.trim().length > 0) {
             addContext(selection);
         }
+        
+        // Announce to all other tabs that THIS tab is now the owner of the chat
+        chrome.storage.local.set({ chatOwnerToken: myTabToken });
+        
         showChatUI();
     }
 });
@@ -42,6 +49,16 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         }
         if (changes.config) {
             config = changes.config.newValue as AppConfig;
+        }
+    }
+    
+    if (namespace === 'local' && changes.chatOwnerToken) {
+        // If the new owner token does NOT match MY token, it means another tab became the boss.
+        // Therefore, I must hide my chat UI immediately!
+        if (changes.chatOwnerToken.newValue !== myTabToken) {
+            if (chatBoxUI) {
+                chatBoxUI.style.display = "none";
+            }
         }
     }
 });
