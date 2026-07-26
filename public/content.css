@@ -71,11 +71,17 @@
     margin-bottom: 5px;
     padding: 5px;
     border-radius: 4px;
+    overflow: hidden; /* 防止子元素撑开导致样式错乱 */
 }
 
 .context-text {
     font-size: 12px;
     color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1; /* 让文本占据所有的剩余空间，不挤压右侧的关闭按钮 */
+    margin-right: 8px; /* 和右侧关闭按钮留出间距 */
 }
 
 .chat-messages-area {

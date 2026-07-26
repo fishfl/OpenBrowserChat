@@ -131,6 +131,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Handle Tabs
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active classes
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+
+            // Add active to clicked tab
+            tab.classList.add('active');
+            
+            // Show corresponding content
+            const targetId = tab.getAttribute('data-target');
+            if (targetId) {
+                document.getElementById(targetId)?.classList.add('active');
+            }
+        });
+    });
+
     function renderSkillList() {
         skillListUI.innerHTML = "";
         currentSkills.forEach((skill, idx) => {

@@ -43,42 +43,88 @@
       font-size: 12px;
       text-align: center;
     }
+    
+    /* Tabs styling */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0;
+      cursor: pointer;
+      background-color: #f1f1f1;
+      border: 1px solid #ccc;
+      border-bottom: none;
+    }
+    .tab.active {
+      background-color: #fff;
+      font-weight: bold;
+      border-bottom: 1px solid #fff;
+      margin-bottom: -1px;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .footer-hint {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h3>AI 服务配置</h3>
-  <div class="form-group">
-    <label for="providerSelect">选择服务供应商</label>
-    <select id="providerSelect">
-      <!-- Options are dynamically populated by popup.js -->
-    </select>
+  <h3>AI 助手配置</h3>
+  
+  <div class="tabs">
+    <div class="tab active" data-target="config-pane">基础配置</div>
+    <div class="tab" data-target="skills-pane">技能管理</div>
   </div>
-  <div class="form-group" id="customUrlGroup" style="display: none;">
-    <label for="providerUrl">自定义 API URL</label>
-    <input type="text" id="providerUrl" placeholder="如: https://api.openai.com/v1/chat/completions">
-  </div>
-  <div class="form-group">
-    <label for="apiKey">API Key</label>
-    <input type="text" id="apiKey" placeholder="你的 API Key">
-  </div>
-  <div class="form-group">
-    <label for="model">Model Name</label>
-    <input type="text" id="model" placeholder="如: deepseek-chat 或 qwen-max">
-  </div>
-  <div class="form-group">
-    <label for="systemPrompt">System Prompt (包含全局属性)</label>
-    <textarea id="systemPrompt" placeholder="你是一个得力的助手..."></textarea>
-  </div>
-  <button id="saveBtn">保存配置</button>
-  <div id="status"></div>
 
-  <hr style="margin: 15px 0;">
-  <h3>技能 (Skills) 管理</h3>
-  <div class="form-group">
-    <label for="skillUpload" style="font-size: 12px; color: #555;">上传 .md 技能文件 (文件名即为调用命令, 如 baoyu.md -> /baoyu)</label>
-    <input type="file" id="skillUpload" accept=".md" multiple style="font-size: 12px;">
+  <div id="config-pane" class="tab-content active">
+    <div class="form-group">
+      <label for="providerSelect">选择服务供应商</label>
+      <select id="providerSelect">
+        <!-- Options are dynamically populated by popup.js -->
+      </select>
+    </div>
+    <div class="form-group" id="customUrlGroup" style="display: none;">
+      <label for="providerUrl">自定义 API URL</label>
+      <input type="text" id="providerUrl" placeholder="如: https://api.openai.com/v1/chat/completions">
+    </div>
+    <div class="form-group">
+      <label for="apiKey">API Key</label>
+      <input type="text" id="apiKey" placeholder="你的 API Key">
+    </div>
+    <div class="form-group">
+      <label for="model">Model Name</label>
+      <input type="text" id="model" placeholder="如: deepseek-chat 或 qwen-max">
+    </div>
+    <div class="form-group">
+      <label for="systemPrompt">System Prompt (包含全局属性)</label>
+      <textarea id="systemPrompt" placeholder="你是一个得力的助手..."></textarea>
+    </div>
+    <button id="saveBtn">保存配置</button>
+    <div id="status"></div>
+    <div class="footer-hint">提示：在任意网页按 Alt+X 呼出助手面板</div>
   </div>
-  <ul id="skillList" style="list-style: none; padding: 0; margin: 0; font-size: 13px;"></ul>
+
+  <div id="skills-pane" class="tab-content">
+    <div class="form-group">
+      <label for="skillUpload" style="font-size: 12px; color: #555;">上传 .md 技能文件 (支持多个)</label>
+      <input type="file" id="skillUpload" accept=".md" multiple style="font-size: 12px;">
+    </div>
+    <ul id="skillList" style="list-style: none; padding: 0; margin: 0; font-size: 13px;"></ul>
+    <div class="footer-hint">提示：暂支持文本类 SKILL，按 / 使用技能</div>
+  </div>
 
   <script src="popup.js"></script>
 </body>
