@@ -129,7 +129,16 @@ function createChatUI() {
     
     const header = document.createElement("div");
     header.className = "chat-header";
-    header.innerHTML = `<span>AI 助手</span> <div><button id="clear-history-btn" title="清空历史" style="margin-right:8px; font-size:12px;">🗑️</button> <button id="close-chat-btn">x</button></div>`;
+    header.innerHTML = `
+        <span class="chat-title">AI 助手</span> 
+        <div class="chat-header-actions">
+            <button id="clear-history-btn" title="清空历史" class="icon-btn">
+                <img src="${chrome.runtime.getURL('icons/trash.svg')}" alt="Clear" width="16" height="16">
+            </button> 
+            <button id="close-chat-btn" class="icon-btn" title="关闭">
+                <img src="${chrome.runtime.getURL('icons/close.svg')}" alt="Close" width="16" height="16">
+            </button>
+        </div>`;
     
     const contentArea = document.createElement("div");
     contentArea.className = "chat-content-area";
@@ -228,7 +237,9 @@ function createChatUI() {
     });
     
     const sendBtn = document.createElement("button");
-    sendBtn.innerText = "发送";
+    sendBtn.className = "send-btn";
+    sendBtn.title = "发送";
+    sendBtn.innerHTML = `<img src="${chrome.runtime.getURL('icons/send.svg')}" alt="Send" width="16" height="16"">`;
     sendBtn.onclick = () => {
         if (skillSuggestionUI) skillSuggestionUI.style.display = "none";
         sendMessage(inputField.value);
@@ -328,7 +339,9 @@ function updateContextUI() {
         ctxText.title = ctx;
         
         const removeBtn = document.createElement("button");
-        removeBtn.innerText = "x";
+        removeBtn.className = "icon-btn remove-context-btn";
+        removeBtn.title = "移除该上下文";
+        removeBtn.innerHTML = `<img src="${chrome.runtime.getURL('icons/close.svg')}" alt="Remove" width="12" height="12">`;
         removeBtn.onclick = () => removeContext(idx);
         
         li.appendChild(ctxText);

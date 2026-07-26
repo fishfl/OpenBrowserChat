@@ -5,64 +5,105 @@
   <title>AI 助手配置</title>
   <style>
     body {
-      width: 300px;
-      padding: 10px;
-      font-family: Arial, sans-serif;
+      width: 320px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #111;
+      background: #fafafa;
+    }
+    h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 16px;
+      letter-spacing: -0.01em;
+      font-weight: 600;
     }
     .form-group {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     label {
       display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+      margin-bottom: 4px;
+      font-weight: 500;
+      font-size: 12px;
+      color: #444;
     }
     select, input[type="text"], textarea {
       width: 100%;
       box-sizing: border-box;
-      padding: 5px;
+      padding: 8px 10px;
+      border: 1px solid #eaeaea;
+      border-radius: 6px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      color: #111;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    select:focus, input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: #999;
+      box-shadow: 0 0 0 1px #999;
     }
     textarea {
-      height: 80px;
+      height: 70px;
+      resize: vertical;
+    }
+    input::placeholder, textarea::placeholder {
+      color: #999;
     }
     button {
       width: 100%;
-      padding: 8px;
-      background-color: #007bff;
+      padding: 10px;
+      background-color: #000;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: background-color 0.15s;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #333;
+    }
+    button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000;
     }
     #status {
       margin-top: 10px;
-      color: green;
+      color: #0f5132;
       font-size: 12px;
       text-align: center;
+      height: 14px;
     }
     
     /* Tabs styling */
     .tabs {
       display: flex;
-      border-bottom: 1px solid #ccc;
-      margin-bottom: 10px;
+      border-bottom: 1px solid #eaeaea;
+      margin-bottom: 16px;
+      gap: 4px;
     }
     .tab {
       flex: 1;
       text-align: center;
-      padding: 8px 0;
+      padding: 6px 0;
       cursor: pointer;
-      background-color: #f1f1f1;
-      border: 1px solid #ccc;
-      border-bottom: none;
+      background-color: transparent;
+      border-bottom: 2px solid transparent;
+      font-size: 13px;
+      color: #666;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab:hover {
+      color: #111;
     }
     .tab.active {
-      background-color: #fff;
-      font-weight: bold;
-      border-bottom: 1px solid #fff;
+      color: #111;
+      font-weight: 600;
+      border-bottom: 2px solid #111;
       margin-bottom: -1px;
     }
     .tab-content {

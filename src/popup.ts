@@ -158,23 +158,28 @@ document.addEventListener("DOMContentLoaded", () => {
             const li = document.createElement("li");
             li.style.display = "flex";
             li.style.justifyContent = "space-between";
-            li.style.background = "#fafafa";
-            li.style.border = "1px solid #ddd";
-            li.style.padding = "4px";
-            li.style.marginBottom = "5px";
-            li.style.borderRadius = "4px";
+            li.style.alignItems = "center";
+            li.style.background = "#fff";
+            li.style.border = "1px solid #eaeaea";
+            li.style.padding = "6px 10px";
+            li.style.marginBottom = "6px";
+            li.style.borderRadius = "6px";
 
             const nameSpan = document.createElement("span");
             nameSpan.innerText = `/${skill.id}`;
-            nameSpan.style.color = "#0056b3";
-            nameSpan.style.fontWeight = "bold";
+            nameSpan.style.color = "#0070f3"; // match the Vercel-like color used in content.css
+            nameSpan.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+            nameSpan.style.fontSize = "13px";
 
             const delBtn = document.createElement("button");
             delBtn.innerText = "移除";
-            delBtn.style.padding = "2px 5px";
+            delBtn.style.padding = "4px 8px";
             delBtn.style.width = "auto";
-            delBtn.style.fontSize = "11px";
-            delBtn.style.background = "#ff4d4f";
+            delBtn.style.fontSize = "12px";
+            delBtn.style.background = "transparent";
+            delBtn.style.color = "#d93025";
+            delBtn.style.border = "1px solid #d93025";
+            delBtn.style.borderRadius = "4px";
             delBtn.onclick = () => {
                 currentSkills.splice(idx, 1);
                 chrome.storage.local.set({ skills: currentSkills }, renderSkillList);

@@ -26,6 +26,16 @@
     "default_popup": "popup.html",
     "default_title": "AI 助手配置"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*.svg"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "commands": {
     "add_to_context": {
       "suggested_key": {
