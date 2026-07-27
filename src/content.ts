@@ -130,7 +130,10 @@ function createChatUI() {
     const header = document.createElement("div");
     header.className = "chat-header";
     header.innerHTML = `
-        <span class="chat-title">AI 助手</span> 
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="${chrome.runtime.getURL('icons/logo.png')}" alt="logo" width="20" height="20" style="border-radius: 4px;">
+            <span class="chat-title">OpenBrowserChat</span> 
+        </div>
         <div class="chat-header-actions">
             <button id="clear-history-btn" title="清空历史" class="icon-btn">
                 <img src="${chrome.runtime.getURL('icons/trash.svg')}" alt="Clear" width="16" height="16">
@@ -335,7 +338,8 @@ function updateContextUI() {
         const li = document.createElement("li");
         const ctxText = document.createElement("span");
         ctxText.className = "context-text";
-        ctxText.innerText = ctx.length > 50 ? ctx.substring(0, 50) + "..." : ctx;
+        const displayCtx = ctx.replace(/[\r\n]+/g, ' ');
+        ctxText.innerText = displayCtx.length > 50 ? displayCtx.substring(0, 50) + "..." : displayCtx;
         ctxText.title = ctx;
         
         const removeBtn = document.createElement("button");

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "网页AI对话助手",
+  "name": "OpenBrowserChat",
   "version": "1.0",
-  "description": "可以选择网页上的文本内容作为上下文，和大模型进行对话。",
+  "description": "可以选择网页上的文本内容作为上下文，和大模型进行对话。支持国产模型，支持SKILL。",
   "permissions": [
     "activeTab",
     "storage",
@@ -22,14 +22,27 @@
       "css": ["content.css"]
     }
   ],
+  "icons": {
+    "16": "icons/logo.png",
+    "32": "icons/logo.png",
+    "48": "icons/logo.png",
+    "128": "icons/logo.png"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "AI 助手配置"
+    "default_icon": {
+      "16": "icons/logo.png",
+      "32": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    },
+    "default_title": "OpenBrowserChat开源网页AI助手，Alt+V快速添加上下文，支持SKILL"
   },
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/*.svg"
+        "icons/*.svg",
+        "icons/*.png"
       ],
       "matches": [
         "<all_urls>"

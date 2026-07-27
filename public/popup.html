@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>AI 助手配置</title>
+  <title>OpenBrowserChat开源网页AI助手，Alt+V快速添加上下文，支持SKILL</title>
   <style>
     body {
       width: 320px;
@@ -123,7 +123,7 @@
   </style>
 </head>
 <body>
-  <h3>AI 助手配置</h3>
+  <h3>OpenBrowserChat配置</h3>
   
   <div class="tabs">
     <div class="tab active" data-target="config-pane">基础配置</div>
@@ -150,21 +150,24 @@
       <input type="text" id="model" placeholder="如: deepseek-chat 或 qwen-max">
     </div>
     <div class="form-group">
-      <label for="systemPrompt">System Prompt (包含全局属性)</label>
+      <label for="systemPrompt">System Prompt (全局提示词)</label>
       <textarea id="systemPrompt" placeholder="你是一个得力的助手..."></textarea>
     </div>
     <button id="saveBtn">保存配置</button>
     <div id="status"></div>
-    <div class="footer-hint">提示：在任意网页按 Alt+X 呼出助手面板</div>
+    <div class="footer-hint">
+      提示：在任意网页按 <strong>Alt+X</strong> 呼出助手面板<br>
+      项目地址: <a href="https://github.com/fishfl/OpenBrowserChat" target="_blank" style="color: #000; text-decoration: underline;">https://github.com/fishfl/OpenBrowserChat</a>
+    </div>
   </div>
 
   <div id="skills-pane" class="tab-content">
     <div class="form-group">
-      <label for="skillUpload" style="font-size: 12px; color: #555;">上传 .md 技能文件 (支持多个)</label>
+      <label for="skillUpload" style="font-size: 12px; color: #555;">上传 .md 技能文件 (仅支持文本类 SKILL)</label>
       <input type="file" id="skillUpload" accept=".md" multiple style="font-size: 12px;">
     </div>
     <ul id="skillList" style="list-style: none; padding: 0; margin: 0; font-size: 13px;"></ul>
-    <div class="footer-hint">提示：暂支持文本类 SKILL，按 / 使用技能</div>
+    <div class="footer-hint">提示：按 / 使用技能</div>
   </div>
 
   <script src="popup.js"></script>
