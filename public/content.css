@@ -4,7 +4,9 @@
     bottom: 20px;
     right: 20px;
     width: 380px;
+    max-width: calc(100vw - 40px);
     height: 600px;
+    max-height: calc(100vh - 40px);
     background: #ffffff;
     border: 1px solid #eaeaeb;
     border-radius: 12px;
@@ -182,15 +184,14 @@
     border-bottom-right-radius: 12px;
 }
 
-.chat-input {
+.chat-input-area textarea {
     flex: 1;
     height: 44px;
-    min-height: 44px;
-    max-height: 120px;
     resize: none;
-    border: 1px solid #eaeaea;
-    border-radius: 8px;
-    padding: 12px 64px 10px 12px; /* right padding for send button */
+    border: 1px solid #ccc;
+    border-radius: 8px 0 0 8px;
+    padding: 6px;
+    margin-right: 0;
     outline: none;
     font-size: 14px;
     font-family: inherit;
@@ -198,24 +199,17 @@
     color: #111;
     transition: border-color 0.15s, background-color 0.15s;
     line-height: 20px;
-}
-
-.chat-input:focus-visible {
-    border-color: #999;
-    background: #fff;
+    box-sizing: border-box;
 }
 
 .send-btn {
-    position: absolute;
-    right: 24px;
-    top: 50%;
-    transform: translateY(-50%);
+    flex-shrink: 0;
     color: #fff;
     background-color: #111;
     padding: 6px;
     border: none;
-    border-radius: 6px;
-    height: 28px;
+    border-radius: 0 8px 8px 0;
+    height: 44px; /* Match input min-height */
     width: 48px;
     cursor: pointer;
     display: flex;
@@ -270,11 +264,4 @@
     color: #0056b3;
 }
 
-.chat-input-area textarea {
-    flex: 1;
-    resize: none;
-    height: 40px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px;
-}
+
