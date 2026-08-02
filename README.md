@@ -41,6 +41,9 @@ OpenBrowserChat 是一款基于 Chrome 的开源浏览器扩展，旨在将任�
 
 本扩展已发布至 Google Chrome Extension Store 和 Microsoft Edge Add-ons 商店，可以直接通过商店一键安装并自动更新。
 
+Microsoft商店插件地址：
+https://microsoftedge.microsoft.com/addons/detail/openbrowserchat/oaifbigmhgodhfihohdimniomngbpkle
+
 
 ### 方式三：本地源码编译安装
 
